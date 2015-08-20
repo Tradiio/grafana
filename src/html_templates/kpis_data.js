@@ -91,9 +91,9 @@ function loadKPIs() {
   var kpis = [
     // {"title" : "Artist Base", "type" : "artist", "objective" : "ARTISTCOUNT"},
 
-    {"title" : "MNA", "type" : "artist",  "origin" : "PT",  "objective" : "MNAPT", "cumulative": true},
-    {"title" : "MNA", "type" : "artist",  "origin" : "GB",  "objective" : "MNAGB", "cumulative": true},
-    {"title" : "MNA", "type" : "artist",  "origin" : "INT", "objective" : "MNAINT", "cumulative": true},
+    // {"title" : "MNA", "type" : "artist",  "origin" : "PT",  "objective" : "MNAPT", "cumulative": true},
+    // {"title" : "MNA", "type" : "artist",  "origin" : "GB",  "objective" : "MNAGB", "cumulative": true},
+    // {"title" : "MNA", "type" : "artist",  "origin" : "INT", "objective" : "MNAINT", "cumulative": true},
     {"title" : "MNA", "type" : "artist",  "origin" : "ALL", "objective" : "MNAALL", "cumulative": true},
 
     // {"title" : "User Base", "type" : "user", "objective" : "USERCOUNT"},
