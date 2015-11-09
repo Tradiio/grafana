@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="html_templates/templates.css">
+<script type"text/javascript" src="html_templates/utils.js"></script>
+<script type"text/javascript" src="html_templates/kpis_data.js"></script>
+</head>
+<body>
+
+<p/>
+<table id="$panel.id$.country_table" class="stats" align="center">
+  <tr id="$panel.id$.country_table.desc_row">
+    <td>Country</td>
+    <td>Total</td>
+    <td>% (Total)</td>
+  </tr>
+  <tr id="$panel.id$.country_table.total_row">
+    <td>Total</td>
+    <td id="$panel.id$.country_table.total_cell" colspan="2"/>
+  </tr>
+</table>
+
+<script>
+
+var locations            = $var-locations$;
+var topNumber            = $var-topNumber$;
+
+var countriesSorted      = Object.keys(locations).sort(function (a,b) { return locations[b] - locations[a]});
+var totalCountries       = countriesSorted.length;
+var totalUsers           = 0;
+
+for (var i = 0; i < totalCountries; i++) {
+  country     = countriesSorted[i];
+  if (locations[country] > 0) {
+    totalUsers += locations[country];
+  }
+};
+
+var totalCell            = document.getElementById("$panel.id$.country_table.total_cell");
+totalCell.innerHTML      = totalUsers;
+
+var table                = document.getElementById("$panel.id$.country_table");
+var topCount             = 0;
+
+var totalCount           = (topNumber + 1) > totalCountries ? totalCountries : (topNumber + 1);
+
+for (var i = 0; i < totalCount; i ++) {
+
+  var row        = table.insertRow(i+1);
+  if (i <= topNumber) {
+
+    var countryCell           = row.insertCell(-1);
+    var totalCell             = row.insertCell(-1);
+    var percentageCell        = row.insertCell(-1);
+
+    if (i < topNumber) {
+      var country               = countriesSorted[i];
+      var count                 = locations[country];
+      topCount                 += count;        
+
+      countryCell.innerHTML     = getCountryFromCode(country);
+      totalCell.innerHTML       = count;
+      percentageCell.innerHTML  = performance(count, totalUsers);
+    }
+    // rest of world data
+    else {
+      countryCell.innerHTML     = "Rest of World"
+      totalCell.innerHTML       = totalUsers - topCount;
+      percentageCell.innerHTML  = performance(totalUsers - topCount, totalUsers);
+    }
+  }
+}
+
+</script>
+
+</body>
+</html>

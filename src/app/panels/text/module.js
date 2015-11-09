@@ -71,6 +71,7 @@ function (angular, app, _, require, PanelMeta) {
                      'dashboard_wmau',
                      'dashboard_performance',
                      'dashboard_performance_wm',
+                     'dashboard_premium_locations',
                      'dashboard_referrals',
                      'dashboard_viral',
                      'perfomance',
