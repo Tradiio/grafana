@@ -42,23 +42,51 @@ function getColor(val){
   // else                return '#212323';
 }
 
-function getTable(behaviour, origin) {
+function getTable(behaviour, origin, device) {
 
-  var gameDatasource       = $var-gameDatasource$;
   var analyticsDatasource  = $var-analyticsDatasource$;
 
   switch (behaviour){
-    case 'all':
-      if (origin !== 'all') return {"table" : "nysa.api.users.active.count.1d.distinct.origin", "datasource" : gameDatasource, "key" : "user_id"};
-      else return {"table" : "nysa.api.users.active.count.1d.distinct", "datasource" : gameDatasource, "key" : "distinct"};
+    case 'sign_up':
+      if (origin !== 'all' || device !== 'all') {
+        var tableName = "nysa.api.users.active.count.1d.distinct.behaviour." + behaviour;
+        return getContinuousQueryByParameters(tableName, behaviour, origin, device);
+
+      } else {
+        return {"table" : "nysa.api.users.registered.count", "datasource" : analyticsDatasource, "key" : "user_id"};
+      }
 
       break;
-    case 'sign_up':
-      return {"table" : "nysa.api.users.registered.count", "datasource" : analyticsDatasource, "key" : "user_id"};
+    case 'all':
+      var tableName = "nysa.api.users.active.count.1d.distinct";
+      return getContinuousQueryByParameters(tableName, behaviour, origin, device);
 
       break;
     default:
-      return {"table" : "nysa.api.events." + behaviour + ".count.1d.distinct", "datasource" : gameDatasource, "key" : "distinct"}; 
+      var tableName = "nysa.api.users.active.count.1d.distinct.behaviour." + behaviour;
+      return getContinuousQueryByParameters(tableName, behaviour, origin, device);
+  }
+}
+
+function getContinuousQueryByParameters(tableName, behaviour, origin, device) {
+
+  var gameDatasource       = $var-gameDatasource$;
+
+  if (origin !== 'all' || device !== 'all') {
+    if (origin !== 'all' && device === 'all') {
+      return {"table" : tableName + ".origin." + origin, "datasource" : gameDatasource, "key" : "user_id"};
+    }
+    else if (origin === 'all' && device !== 'all') {
+      return {"table" : tableName + ".device." + device, "datasource" : gameDatasource, "key" : "user_id"};
+    } else {
+      return {"table" : tableName + ".origin." + origin + ".device." + device, "datasource" : gameDatasource, "key" : "user_id"};
+    }
+  } else {
+    if (behaviour === 'all') {
+      return {"table" : tableName, "datasource" : gameDatasource, "key" : "distinct"};
+    } else {
+      return {"table" : tableName, "datasource" : gameDatasource, "key" : "user_id"};
+    }
   }
 }
 
@@ -93,14 +121,10 @@ require(['../config.js'], function(Settings){
   var initialBehaviour     = $var-initialBehaviour$;
   var nextBehaviour        = $var-nextBehaviour$;
   var origin               = $var-origin$;
+  var device               = $var-device$;
 
-  var originAllowed        = ['all', 'sign_up'];
-
-  // Only signup and all behaviours are currently available to origin cohort
-  if (origin !== 'all' && (originAllowed.indexOf(initialBehaviour) == -1 || originAllowed.indexOf(nextBehaviour) == -1)) origin = 'all';
-
-  var initialTable         = getTable(initialBehaviour, origin);
-  var nextTable            = getTable(nextBehaviour, origin);
+  var initialTable         = getTable(initialBehaviour, origin, device);
+  var nextTable            = getTable(nextBehaviour, origin, device);
 
   //Cohort dates are calculated according to timespan
   var dates   = datesBetween(timespan, startDate);
@@ -108,14 +132,6 @@ require(['../config.js'], function(Settings){
 
   whereClause = [];
   whereClause.push("time > '" + start + "'");
-  // if origin filter is active a where clause is added to the query
-  if (origin !== 'all') {
-    if (origin !== 'INT') whereClause.push("origin = '" + origin + "'");
-    else {
-      whereClause.push("origin <> 'PT'");
-      whereClause.push("origin <> 'GB'");
-    }
-  }
 
   var initialQuery = createQuery(initialTable.table, "*", whereClause, "", "asc");
   var nextQuery    = createQuery(nextTable.table,    "*", whereClause, "", "asc");
@@ -168,7 +184,7 @@ require(['../config.js'], function(Settings){
         // Filter users that had at least 1 comeback
         for (var k = 0; k < time0users.length; k++) {
           var user_id = time0users[k];
-          if (time0group[user_id] <= 1) delete time0group[user_id];
+          if (time0group[user_id] <= 1 && nextBehaviour === 'all') delete time0group[user_id];
         }
 
         var filteredUsers = Object.keys(time0group);
