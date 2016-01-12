@@ -126,8 +126,10 @@ function createQuery(table, select, where, groupBy, orderBy){
 //groups data by an array of timestamps
 function groupByTime(dates, data, key){
 
-  var obj       = {};
-  var dataIndex = 0;
+  var obj           = {};
+  var dataIndex     = 0;
+
+  var usersUnique   = [];
 
   for (var i = 0; i < dates.length; i++){
     var d     = {};
@@ -141,8 +143,18 @@ function groupByTime(dates, data, key){
       }
 
       var value = data[dataIndex][key];
-      if (d[value] === undefined) d[value] = 1;
-      else d[value]++;
+      if (usersUnique[value] === undefined) {
+        usersUnique[value] = [];
+      }
+
+      if (usersUnique[value][data[dataIndex].time] === undefined) {
+
+        usersUnique[value][data[dataIndex].time] = true;
+
+        if (d[value] === undefined) d[value] = 1;
+        else d[value]++;
+      }
+
       dataIndex++;
     }
 
