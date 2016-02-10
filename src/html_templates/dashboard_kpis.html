@@ -48,8 +48,9 @@ function getKPIValue(kpi, realizedData, currentMAU) {
     if      (kpi.title === "AU")         ret = realizedData.activeUsers;
     else if (kpi.title === "MAU")        ret = performance(realizedData.activeUsers, realizedData.userBase);
     else if (kpi.title === "DAU")        ret = realizedData.dailyActiveUsers;
-    if      (kpi.title === "WAU")        ret = realizedData.activeUsers;
-    else if (kpi.title === "Stickiness") ret = performance(realizedData.dailyActiveUsers, currentMAU ? currentMAU : realizedData.activeUsers);
+    else if (kpi.title === "WAU")        ret = realizedData.activeUsers;
+    else if (kpi.title === "Listeners")  ret = realizedData.listeners;
+    else if (kpi.title === "Investors")  ret = realizedData.investors;
   }
 
   return ret;
@@ -62,7 +63,7 @@ function getAverageDailyUsers(startDate, endDate, origin, Settings) {
   var originClause = [];
 
   var gameDatasource       = $var-gameDatasource$;
-  var analyticsDatasource  = $var-analyticsDatasource$; 
+  var analyticsDatasource  = $var-analyticsDatasource$;
 
   whereClause.push("time > '" + startDate + "'");
   baseClause.push("time > '" + '2015-01-16' + "'");
@@ -71,8 +72,8 @@ function getAverageDailyUsers(startDate, endDate, origin, Settings) {
   }
 
   if (origin !== 'all') {
-    var activeUserTable = "nysa.api.users.active.count.1d.distinct.origin";    
-    var activeUserKey   = "user_id";    
+    var activeUserTable = "nysa.api.users.active.count.1d.distinct.origin";
+    var activeUserKey   = "user_id";
     if (origin !== 'INT') originClause.push("origin = '" + origin + "'");
     else {
       originClause.push("origin <> 'PT'");
@@ -121,40 +122,51 @@ function getRealizedData(Settings, startDate, endDate) {
     baseClause.push("time < '" + endDate + "'-1s");
   }
 
-  var artistQuery         = createQuery(artistTable,     "count(distinct(artist_id))", timeClause, "origin");
-  var artistBaseQuery     = createQuery(artistTable,     "count(distinct(artist_id))", baseClause, "");
-  var userQuery           = createQuery(userTable,       "count(distinct(user_id))",   timeClause, "origin");
-  var userBaseQuery       = createQuery(activeUserTable, "count(distinct(distinct))",  baseClause.concat([betaClause]), "");
-  var activeUserQuery     = createQuery(activeUserTable, "count(distinct)",            timeClause, "distinct");
-  var userSignupsQuery    = createQuery(userTable,       "distinct(user_id)",          timeClause, "");
+  // var artistQuery         = createQuery(artistTable,     "count(distinct(artist_id))", timeClause, "origin");
+  // var artistQuery         = createQuery(artistTable,     "count(distinct(artist_id))", timeClause, "origin");
+  // var artistBaseQuery     = createQuery(artistTable,     "count(distinct(artist_id))", baseClause, "");
+  // var userQuery           = createQuery(userTable,       "count(distinct(user_id))",   timeClause, "origin");
+  // var userBaseQuery       = createQuery(activeUserTable, "count(distinct(distinct))",  baseClause.concat([betaClause]), "");
+  // var activeUserQuery     = createQuery(activeUserTable, "count(distinct)",            timeClause, "distinct");
+  // var userSignupsQuery    = createQuery(userTable,       "distinct(user_id)",          timeClause, "");
 
-  var artistData          = getInfluxDbData(artistQuery, analyticsDatasource, Settings);
-  var userData            = getInfluxDbData(userQuery,   analyticsDatasource, Settings);
-  var monthlyArtists      = artistData !== undefined ? artistData.reduce(function (a,b) { return a + b.count; }, 0) : 0;
-  var monthlyUsers        = userData   !== undefined ? userData.reduce(function   (a,b) { return a + b.count; }, 0) : 0;
-  artistData              = groupByKey(artistData, "origin");
-  userData                = groupByKey(userData,   "origin");
+  // var artistData          = getInfluxDbData(artistQuery, analyticsDatasource, Settings);
+  // var userData            = getInfluxDbData(userQuery,   analyticsDatasource, Settings);
+  // var monthlyArtists      = artistData !== undefined ? artistData.reduce(function (a,b) { return a + b.count; }, 0) : 0;
+  // var monthlyUsers        = userData   !== undefined ? userData.reduce(function   (a,b) { return a + b.count; }, 0) : 0;
+  // artistData              = groupByKey(artistData, "origin");
+  // userData                = groupByKey(userData,   "origin");
 
-  var artistBase          = getInfluxDbData(artistBaseQuery, analyticsDatasource, Settings)[0].count;
-  var userBase            = getInfluxDbData(userBaseQuery,   gameDatasource,      Settings)[0].count;
+  // var artistBase          = getInfluxDbData(artistBaseQuery, analyticsDatasource, Settings)[0].count;
+  // var userBase            = getInfluxDbData(userBaseQuery,   gameDatasource,      Settings)[0].count;
 
-  var userSignups         = groupByKey(getInfluxDbData(userSignupsQuery, analyticsDatasource, Settings), "distinct");
-  var activeUserData      = getInfluxDbData(activeUserQuery, gameDatasource, Settings);
-  var activeUsers         = getMonthlyActiveUsers(activeUserData, userSignups);
+  // var userSignups         = groupByKey(getInfluxDbData(userSignupsQuery, analyticsDatasource, Settings), "distinct");
+  // var activeUserData      = getInfluxDbData(activeUserQuery, gameDatasource, Settings);
+  // var activeUsers         = getMonthlyActiveUsers(activeUserData, userSignups);
 
-  var dailyActiveUsers    = getAverageDailyUsers(startDate, endDate, "all", Settings)["activeUsers"];
+  // var dailyActiveUsers    = getAverageDailyUsers(startDate, endDate, "all", Settings)["activeUsers"];
+
+  var investorsQuery          = createQuery("nysa.api.events.invest.count", "count(distinct(user_id))", timeClause, "");
+  var investorsData           = getInfluxDbData(investorsQuery, gameDatasource, Settings);
+  investorsData               = investorsData.length > 0 ? investorsData[0].count : 0;
+
+  var listenersQuery          = createQuery("nysa.api.events.hit_play.count merge nysa.api.events.hit_play.count.guest", "count(distinct(user_id))", timeClause, "");
+  var listenersData           = getInfluxDbData(listenersQuery, gameDatasource, Settings);
+  listenersData               = listenersData.length > 0 ? listenersData[0].count : 0;
 
   var ret = {
-    "activeUsers"     : activeUsers,
-    "activeUserData"  : activeUserData,
-    "dailyActiveUsers": dailyActiveUsers,
-    "userSignups"     : userSignups,
-    "userBase"        : userBase,
-    "userData"        : userData,
-    "artistBase"      : artistBase,
-    "artistData"      : artistData,
-    "monthlyUsers"    : monthlyUsers,
-    "monthlyArtists"  : monthlyArtists
+    // "activeUsers"     : activeUsers,
+    // "activeUserData"  : activeUserData,
+    // "dailyActiveUsers": dailyActiveUsers,
+    // "userSignups"     : userSignups,
+    // "userBase"        : userBase,
+    // "userData"        : userData,
+    // "artistBase"      : artistBase,
+    // "artistData"      : artistData,
+    // "monthlyUsers"    : monthlyUsers,
+    // "monthlyArtists"  : monthlyArtists
+    "investors"       : investorsData,
+    "listeners"       : listenersData
   };
 
   return ret;
@@ -202,9 +214,9 @@ function insertPerformanceCells(row, objective, realized, percentage) {
   fillPerformanceCell(performanceCell, perf);
 }
 
-/* function that calculates number of active users based on 
+/* function that calculates number of active users based on
  * influxdb continuous active users table and on the last
- * signup user_id 
+ * signup user_id
  */
 function getMonthlyActiveUsers(activeUserData, userSignups) {
 
@@ -314,7 +326,7 @@ require(["../config.js"], function(Settings){
   for (var i = 0; i < nextWeeks.length; i++) {
     var date     = nextWeeks[i].date;
 
-    // number of days of week is calculated 
+    // number of days of week is calculated
     var nextDate = i < nextWeeks.length - 1 ? nextWeeks[i+1].date : nextMonth;
     var diffDays = dateDiffInDays(date, nextDate);
 
@@ -362,10 +374,10 @@ require(["../config.js"], function(Settings){
 
         insertPerformanceCells(row, objective, realized, kpi.percentage);
       }
-      else {      
+      else {
         var cell       = row.insertCell(-1);
         cell.colSpan   = 3;
-        cell.innerHTML = diff; 
+        cell.innerHTML = diff;
       }
     }
   }

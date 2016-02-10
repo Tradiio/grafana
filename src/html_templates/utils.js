@@ -52,7 +52,7 @@ function getInfluxDbData(query, datasource, settings){
   $.ajax({
 
     url: getUrl,
-    async: false,  
+    async: false,
     success: function (data) {
       result = arrangeInfluxDbData(data);
     }
@@ -95,7 +95,7 @@ function groupByKey(array, key){
       var point     = array[i];
       var value     = point[key];
       obj[value]    = point;
-    }    
+    }
   }
 
   return obj;
@@ -203,7 +203,7 @@ function datesBetween(timespan, startDate, endDate){
 
   while (current < end) {
 
-    dates.push({'date' : new Date(current), 'str' : formatDate(current)}); 
+    dates.push({'date' : new Date(current), 'str' : formatDate(current)});
     switch(timespan) {
       case 'd':
         current.setDate(current.getDate()+1);
@@ -274,7 +274,7 @@ function insertBlankCells(rowArray){
   for (var i = 0; i < rowArray.length; i++) {
     var row       = rowArray[i];
     var blankCell = row.insertCell(-1);
-    
+
     blankCell.style.borderBottom = "hidden";
     blankCell.style.borderTop    = "hidden";
   }
@@ -290,9 +290,9 @@ function fillPerformanceCell(cell, performance) {
     cell.style.backgroundColor = performance > 100 ?  "green" : performance < 80 ? "red" : "yellow";
   }
   if (performance == Infinity)   {
-    cell.innerHTML = "&infin;"    
+    cell.innerHTML = "&infin;"
     cell.style.fontSize = "17px";
-  }  
+  }
 }
 
 //Simple funtion utils

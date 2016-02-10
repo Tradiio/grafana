@@ -44,6 +44,12 @@ function loadObjectives() {
 
     "STK":         {"2015-02-01" :    40, "2015-03-01" :     61, "2015-04-01" :     35, '2015-05-01' :     35, '2015-06-01' :     35, '2015-07-01' :  18.42,
                     '2015-08-01' : 20.00, '2015-09-01' :  20.00, '2015-10-01' :  16.79, '2015-11-01' :  17.71, '2015-12-01' :  18.76},
+
+    "LIST":        {"2016-01-01" :  9139, "2016-02-01" :  15326, "2016-03-01" :  26053, "2016-04-01" :  40000, '2016-05-01' :  40000, '2016-06-01' :  40000, '2016-07-01' :  40000,
+                    '2016-08-01' : 40000, '2016-09-01' :  40000, '2016-10-01' :  40000, '2016-11-01' :  40000, '2016-12-01' :  40000},
+
+    "INV":         {"2016-01-01" :  5198, "2016-02-01" :   6210, "2016-03-01" :   7452, "2016-04-01" :  12000, '2016-05-01' :  20000, '2016-06-01' :  30000, '2016-07-01' :  40000,
+                    '2016-08-01' : 40000, '2016-09-01' :  40000, '2016-10-01' :  40000, '2016-11-01' :  40000, '2016-12-01' :  40000},
   };
 
   return objectives;
@@ -94,7 +100,7 @@ function loadKPIs() {
     // {"title" : "MNA", "type" : "artist",  "origin" : "PT",  "objective" : "MNAPT", "cumulative": true},
     // {"title" : "MNA", "type" : "artist",  "origin" : "GB",  "objective" : "MNAGB", "cumulative": true},
     // {"title" : "MNA", "type" : "artist",  "origin" : "INT", "objective" : "MNAINT", "cumulative": true},
-    {"title" : "MNA", "type" : "artist",  "origin" : "ALL", "objective" : "MNAALL", "cumulative": true},
+    // {"title" : "MNA", "type" : "artist",  "origin" : "ALL", "objective" : "MNAALL", "cumulative": true},
 
     // {"title" : "User Base", "type" : "user", "objective" : "USERCOUNT"},
 
@@ -102,13 +108,14 @@ function loadKPIs() {
     // {"title" : "MNU", "type" : "user",  "origin" : "GB",  "objective" : "MNUGB"},
     // {"title" : "MNU", "type" : "user",  "origin" : "INT", "objective" : "MNUINT"},
 
-    {"title" : "AU",   "type" : "active_user",  "objective" : "AU", "cumulative": false},
-    {"title" : "MAU",  "type" : "active_user",  "percentage" : true, "objective" : "MAU", "cumulative": false},
-    {"title" : "DAU",  "type" : "active_user",  "objective" : "DAU", "cumulative": false},
-    {"title" : "WAU",  "type" : "active_user",  "objective" : "WAU", "cumulative": false},
-    {"title" : "Stickiness",  "type" : "active_user",  "percentage" : true,  "objective" : "STK", "cumulative": false},
-    {"title" : "MNU", "type" : "user",  "origin" : "ALL", "objective" : "MNUALL", "cumulative": false}
-
+    // {"title" : "AU",   "type" : "active_user",  "objective" : "AU", "cumulative": false},
+    // {"title" : "MAU",  "type" : "active_user",  "percentage" : true, "objective" : "MAU", "cumulative": false},
+    // {"title" : "DAU",  "type" : "active_user",  "objective" : "DAU", "cumulative": false},
+    // {"title" : "WAU",  "type" : "active_user",  "objective" : "WAU", "cumulative": false},
+    // {"title" : "Stickiness",  "type" : "active_user",  "percentage" : true,  "objective" : "STK", "cumulative": false},
+    // {"title" : "MNU", "type" : "user",  "origin" : "ALL", "objective" : "MNUALL", "cumulative": false}
+    {"title" : "Listeners", "type" : "stats",  "objective" : "LIST", "cumulative": true},
+    {"title" : "Investors", "type" : "stats",  "objective" : "INV",  "cumulative": true}
   ];
 
   return kpis;
