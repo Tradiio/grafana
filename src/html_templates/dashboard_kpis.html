@@ -311,7 +311,7 @@ require(["../config.js"], function(Settings){
   nextMonth.setMonth(nextMonth.getMonth() + 1, 1);
   var monthDays       = dateDiffInDays(new Date(currentMonth), nextMonth);
 
-  var nextWeeks       = datesBetween('w', currentMonth, nextMonth);
+  var nextWeeks       = datesBetween('w', currentMonth, nextMonth, true);
   // If first monday is in the previous month the dates are rearraged
   if (nextWeeks[0].date.getMonth() !== endDate.getMonth()) {
     nextWeeks[0].date.setMonth(endDate.getMonth(), 1);

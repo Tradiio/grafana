@@ -173,6 +173,14 @@ function getMonday(d) {
   return new Date(d.setDate(diff));
 }
 
+//Datetime Utils
+function getThursday(d) {
+
+  d = new Date(d);
+  var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -10:-3);
+  return new Date(d.setDate(diff));
+}
+
 function getFirstDayOfMonth(d) {
 
   d = new Date(d);
@@ -192,14 +200,14 @@ function formatDate(date) {
     return [year, month, day].join('-');
 }
 
-function datesBetween(timespan, startDate, endDate){
+function datesBetween(timespan, startDate, endDate, startsThursday){
 
   var dates   = [];
   var end     = typeof endDate !== "undefined" ? new Date(endDate) : new Date();
   var current = new Date(startDate);
 
   if (timespan == 'm') current.setDate(1);
-  else if (timespan == 'w') current = getMonday(startDate);
+  else if (timespan == 'w') current = (typeof startsThursday !== "undefined") ? getThursday(startDate) : getMonday(startDate);
 
   while (current < end) {
 
