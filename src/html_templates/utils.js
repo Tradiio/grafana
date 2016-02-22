@@ -177,7 +177,7 @@ function getMonday(d) {
 function getThursday(d) {
 
   d = new Date(d);
-  var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -10:-3);
+  var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -9 : -2);
   return new Date(d.setDate(diff));
 }
 
