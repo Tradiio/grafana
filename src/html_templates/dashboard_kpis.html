@@ -112,15 +112,28 @@ function getRealizedData(Settings, startDate, endDate) {
   var userTable            = "nysa.api.users.registered.count";
   var activeUserTable      = "nysa.api.users.active.count.1d.distinct";
 
-  var timeClause = [];
-  var baseClause = [];
-  var activeUserClause = [];
-  var betaClause = "time > '" + '2015-01-16' + "'";
+  var timeClause        = [];
+  var baseClause        = [];
+  var beforeClause      = [];
+  var afterClause       = [];
+  var activeUserClause  = [];
+  var betaClause        = "time > '" + '2015-01-16' + "'";
+
   timeClause.push("time > '" + startDate + "'");
   if (typeof endDate !== "undefined") {
     timeClause.push("time < '" + endDate + "'-1s");
     baseClause.push("time < '" + endDate + "'-1s");
   }
+
+  var firstDayOfMonth     = getFirstDayOfMonth(startDate);
+  var firstDayOfMonthStr  = formatDate(firstDayOfMonth);
+
+  beforeClause.push("time < '" + startDate + "'-1s")
+  beforeClause.push("time > '" + firstDayOfMonthStr + "'-1s")
+  afterClause.push("time < '" + endDate + "'-1s")
+  afterClause.push("time > '" + firstDayOfMonthStr + "'-1s")
+
+
 
   // var artistQuery         = createQuery(artistTable,     "count(distinct(artist_id))", timeClause, "origin");
   // var artistQuery         = createQuery(artistTable,     "count(distinct(artist_id))", timeClause, "origin");
@@ -146,13 +159,26 @@ function getRealizedData(Settings, startDate, endDate) {
 
   // var dailyActiveUsers    = getAverageDailyUsers(startDate, endDate, "all", Settings)["activeUsers"];
 
-  var investorsQuery          = createQuery("nysa.api.events.invest.count", "count(distinct(user_id))", timeClause, "");
-  var investorsData           = getInfluxDbData(investorsQuery, gameDatasource, Settings);
-  investorsData               = investorsData.length > 0 ? investorsData[0].count : 0;
+  var investorsBeforeQuery          = createQuery("nysa.api.events.invest.count", "count(distinct(user_id))", beforeClause, "");
+  var investorsBeforeData           = getInfluxDbData(investorsBeforeQuery, gameDatasource, Settings);
+  investorsBeforeData               = investorsBeforeData.length > 0 ? investorsBeforeData[0].count : 0;
 
-  var listenersQuery          = createQuery("nysa.api.events.hit_play.count merge nysa.api.events.hit_play.count.guest", "count(distinct(user_id))", timeClause, "");
-  var listenersData           = getInfluxDbData(listenersQuery, gameDatasource, Settings);
-  listenersData               = listenersData.length > 0 ? listenersData[0].count : 0;
+  var investorsAfterQuery           = createQuery("nysa.api.events.invest.count", "count(distinct(user_id))", afterClause, "");
+  var investorsAfterData            = getInfluxDbData(investorsAfterQuery, gameDatasource, Settings);
+  investorsAfterData                = investorsAfterData.length > 0 ? investorsAfterData[0].count : 0;
+
+  investorsData                     = investorsAfterData - investorsBeforeData;
+
+
+  var listenersBeforeQuery          = createQuery("nysa.api.events.hit_play.count merge nysa.api.events.hit_play.count.guest", "count(distinct(user_id))", beforeClause, "");
+  var listenersBeforeData           = getInfluxDbData(listenersBeforeQuery, gameDatasource, Settings);
+  listenersBeforeData               = listenersBeforeData.length > 0 ? listenersBeforeData[0].count : 0;
+
+  var listenersAfterQuery           = createQuery("nysa.api.events.hit_play.count merge nysa.api.events.hit_play.count.guest", "count(distinct(user_id))", afterClause, "");
+  var listenersAfterData            = getInfluxDbData(listenersAfterQuery, gameDatasource, Settings);
+  listenersAfterData                = listenersAfterData.length > 0 ? listenersAfterData[0].count : 0;
+
+  listenersData                     = listenersAfterData - listenersBeforeData;
 
   var ret = {
     // "activeUsers"     : activeUsers,
