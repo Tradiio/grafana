@@ -295,7 +295,7 @@ function fillPerformanceCell(cell, performance) {
   }
   else {
     cell.innerHTML = performance + " %";
-    cell.style.backgroundColor = performance > 100 ?  "green" : performance < 80 ? "red" : "yellow";
+    cell.style.backgroundColor = performance > 90 ?  "green" : performance < 70 ? "red" : "yellow";
   }
   if (performance == Infinity)   {
     cell.innerHTML = "&infin;"
