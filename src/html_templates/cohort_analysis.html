@@ -42,18 +42,22 @@ function getColor(val){
   // else                return '#212323';
 }
 
-function getTable(behaviour, origin, device) {
+function getTable(behaviour, origin, device, guest) {
 
   var analyticsDatasource  = $var-analyticsDatasource$;
 
   switch (behaviour){
     case 'sign_up_artist':
+
       return {"table" : "nysa.api.artists.valid.count", "datasource" : analyticsDatasource, "key" : "user_id"};
 
       break;
     case 'sign_up':
       if (origin !== 'all' || device !== 'all') {
-        var tableName = "nysa.api.users.active.count.1d.distinct.behaviour." + behaviour;
+        var tableName = "nysa.api.users.active.count";
+        if (guest) tableName += ".guest";
+        tableName            += ".1d.distinct.behaviour." + behaviour;
+
         return getContinuousQueryByParameters(tableName, behaviour, origin, device);
 
       } else {
@@ -62,12 +66,18 @@ function getTable(behaviour, origin, device) {
 
       break;
     case 'all':
-      var tableName = "nysa.api.users.active.count.1d.distinct";
+      var tableName         = "nysa.api.users.active.count";
+      if (guest) tableName += ".guest";
+      tableName            += ".1d.distinct";
+
       return getContinuousQueryByParameters(tableName, behaviour, origin, device);
 
       break;
     default:
-      var tableName = "nysa.api.users.active.count.1d.distinct.behaviour." + behaviour;
+      var tableName         = "nysa.api.users.active.count";
+      if (guest) tableName += ".guest";
+      tableName            += ".1d.distinct.behaviour." + behaviour;
+
       return getContinuousQueryByParameters(tableName, behaviour, origin, device);
   }
 }
@@ -98,7 +108,7 @@ function time0group(startDate, endDate, data) {
 
   var dataIndex     = 0;
   var initialGroup  = [];
-  var repeatedGroup = []; 
+  var repeatedGroup = [];
 
    while (dataIndex < data.length && new Date(data[dataIndex].time) < endDate){
     if (new Date(data[dataIndex].time) < startDate) {
@@ -126,9 +136,20 @@ require(['../config.js'], function(Settings){
   var nextBehaviour        = $var-nextBehaviour$;
   var origin               = $var-origin$;
   var device               = $var-device$;
+  var guest                = 1;
 
-  var initialTable         = getTable(initialBehaviour, origin, device);
-  var nextTable            = getTable(nextBehaviour, origin, device);
+  if (guest) {
+
+    // Signup event is not allowed in guest
+    if (initialBehaviour == 'sign_up' ||  initialBehaviour == 'sign_up_artist') {
+      initialBehaviour    = 'all';
+    }
+
+    device                = 'all';
+  }
+
+  var initialTable        = getTable(initialBehaviour, origin, device, guest);
+  var nextTable           = getTable(nextBehaviour, origin, device, guest);
 
   //Cohort dates are calculated according to timespan
   var dates   = datesBetween(timespan, startDate);
@@ -143,6 +164,9 @@ require(['../config.js'], function(Settings){
     whereInitialClause.push("origin = '" + origin + "'");
   }
 
+  console.log(initialTable.table);
+  console.log(nextTable.table);
+
   var initialQuery = createQuery(initialTable.table, "*", whereInitialClause, "", "asc");
   var nextQuery    = createQuery(nextTable.table,    "*", whereNextClause, "", "asc");
 
@@ -152,7 +176,7 @@ require(['../config.js'], function(Settings){
   var initialGroup = groupByTime(dates, initialData, initialTable.key);
   var nextGroup    = groupByTime(dates, nextData, nextTable.key);
 
-  var table  = document.getElementById("$panel.id$.cohort"); 
+  var table  = document.getElementById("$panel.id$.cohort");
   var header = table.tHead.children[0];
   var maxPerformance = 0;
 
@@ -161,7 +185,7 @@ require(['../config.js'], function(Settings){
     var dateCell       = row.insertCell(0);
     var initCell       = row.insertCell(1);
     var initialUsers   = Object.keys(initialGroup[dates[i].str]);
-    
+
     dateCell.innerHTML = dates[i].str;
     initCount          = initialUsers.length;
     initCell.innerHTML = initCount;
