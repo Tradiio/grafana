@@ -164,9 +164,6 @@ require(['../config.js'], function(Settings){
     whereInitialClause.push("origin = '" + origin + "'");
   }
 
-  console.log(initialTable.table);
-  console.log(nextTable.table);
-
   var initialQuery = createQuery(initialTable.table, "*", whereInitialClause, "", "asc");
   var nextQuery    = createQuery(nextTable.table,    "*", whereNextClause, "", "asc");
 
