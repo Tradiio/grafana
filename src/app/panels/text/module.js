@@ -47,7 +47,7 @@ function (angular, app, _, require, PanelMeta) {
         // $.ajax({
 
         //     url: dir,
-        //     async: false,  
+        //     async: false,
         //     success: function (data) {
 
         //         console.log(data);
@@ -67,6 +67,7 @@ function (angular, app, _, require, PanelMeta) {
                      'dashboard_country_distribution',
                      'dashboard_cheaters',
                      'dashboard_kpis',
+                     'dashboard_investors',
                      'dashboard_invite_conversion',
                      'dashboard_wmau',
                      'dashboard_performance',
@@ -140,7 +141,7 @@ function (angular, app, _, require, PanelMeta) {
         }
 
         return(varNames);
-    }    
+    }
 
     $scope.render = function() {
       if ($scope.panel.mode === 'markdown') {
@@ -157,7 +158,7 @@ function (angular, app, _, require, PanelMeta) {
         $scope.panel.content = $scope.getTemplate($scope.panel.style['html_template']);
         $scope.panel.content = $scope.panel.content.split('$panel.id$').join($scope.panel.id);
 
-        for (var i = 0, len = $scope.panel.html_vars.length; i < len; i++){          
+        for (var i = 0, len = $scope.panel.html_vars.length; i < len; i++){
           $scope.panel.content = $scope.panel.content.split('$var-' + $scope.panel.html_vars[i].name + '$').join($scope.panel.html_vars[i].var);
         }
         $scope.updateContent($scope.panel.content);
@@ -213,7 +214,7 @@ function (angular, app, _, require, PanelMeta) {
           if (myArray[i][property] === searchTerm) return i;
       }
       return -1;
-    }    
+    }
 
     $scope.init();
   });

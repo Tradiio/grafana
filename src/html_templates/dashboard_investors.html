@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head>
+<link rel="stylesheet" href="html_templates/templates.css">
+<script type"text/javascript" src="html_templates/utils.js"></script>
+<script type"text/javascript" src="html_templates/kpis_data.js"></script>
+</head>
+
+<body>
+
+<div class="container">
+
+    <br>
+    <div class="row">
+        <div class="span1"><strong>Weekly:</strong></div>
+        <div class="span4">
+            <div id="$panel.id$.weekly_progress_bar" class="progress progress-striped">
+                <div class="bar" style="width: 0%;"></div>
+            </div>
+        </div>
+        <div class="span1" id="$panel.id$.weekly_progress_value"></div>
+        <div class="span1"><strong>Monthly:</strong></div>
+        <div class="span4">
+            <div id="$panel.id$.monthly_progress_bar" class="progress progress-striped">
+                <div class="bar" style="width: 0%;"></div>
+            </div>
+        </div>
+        <div class="span1" id="$panel.id$.monthly_progress_value"></div>
+    </div>
+
+
+    <div>
+        <table id="$panel.id$.investors_table" class="table stats" align="center">
+            <tr id="$panel.id$.investors_table.month_row">
+                <td rowspan="2">Variable</td>
+                <td rowspan="2" id="$panel.id$.previous_month"></td>
+                <td rowspan="2" id="$panel.id$.current_month"></td>
+                <td colspan="3">Weekly</td>
+                <td colspan="3">Monthly</td>
+                <td rowspan="2">Goal</td>
+                <td rowspan="2">Performance</td>
+            </tr>
+            <tr>
+                <td>S-2</td>
+                <td>S-1</td>
+                <td>S (Today)</td>
+                <td>M-2</td>
+                <td>M-1</td>
+                <td>M (Today)</td>
+            </tr>
+            <tr>
+                <th/>
+            </tr>
+        </table>
+    </div>
+</div>
+
+<script>
+
+require(["../config.js"], function(Settings){
+
+    var goals           = loadInvestorsDeck();
+
+    var gameDatasource  = $var-gameDatasource$;
+    var stats           = [
+
+        [
+            {'name' : 'Funding',            'performance' : true,   'goal' : 1532,  'key' : 'paying_amount'},
+            {'name' : 'Super Fans',         'performance' : true,   'goal' : 690,   'key' : 'paying_fans'},
+            {'name' : 'Active Circles',     'performance' : true,   'goal' : 29,    'key' : 'active_artists'},
+        ],
+        [
+            {'name' : 'Artist Base',        'performance' : false,  'key' : 'total_artist_base'},
+            {'name' : 'Artists w/Songs',    'performance' : false,  'key' : 'total_artists_with_songs'},
+            {'name' : 'Artists w/Circle',   'performance' : false,  'key' : 'new_circles'},
+        ],
+        [
+            {'name' : 'Monthly Listeners',  'performance' : false,  'key' : 'active_listeners'},
+            {'name' : 'User Base',          'performance' : false,  'key' : 'user_base'},
+            {'name' : 'Users w/Follows',    'performance' : false,  'key' : 'users_following_artists'},
+        ]
+    ];
+
+    var table                   = document.getElementById("$panel.id$.investors_table");
+    var rowIndex                = 3;
+
+    var weeklyProgresses        = [];
+    var monthlyProgresses       = [];
+
+    // setting month variables
+    var currentMonth            = getFirstDayOfMonth(new Date);
+    var previousMonth           = getFirstDayOfMonth(new Date);
+    previousMonth.setMonth(previousMonth.getMonth() - 1);
+
+    var currentWeek             = getMonday(new Date);
+    var totalMonthDays          = daysInMonth(currentWeek);
+    // getting remaining week/month days
+    var monthDays               = daysInMonth(currentWeek) - currentWeek.getDate() + 1;
+    var weekDays                = monthDays > 7 ? 7 : monthDays;
+
+    var currentMonthTd          = document.getElementById("$panel.id$.current_month");
+    var previousMonthTd         = document.getElementById("$panel.id$.previous_month");
+
+    currentMonthTd.innerHTML    = getMonthNames()[currentMonth.getMonth()];
+    previousMonthTd.innerHTML   = getMonthNames()[previousMonth.getMonth()];
+
+    // Create the tables rows with the respective data
+    for (var i = 0; i < stats.length; i++) {
+
+        for (var j = 0; j < stats[i].length; j++) {
+
+            var weeklyQuery         = "select * from nysa.api.kpi.snapshots.count.key." + stats[i][j]['key'] + ".interval.weekly limit 3";
+            var weeklyData          = getInfluxDbData(weeklyQuery, gameDatasource, Settings);
+
+            var monthlyQuery        = "select * from nysa.api.kpi.snapshots.count.key." + stats[i][j]['key'] + ".interval.monthly limit 2";
+            var monthlyData         = getInfluxDbData(monthlyQuery, gameDatasource, Settings);
+
+            var currentQuery        = "select * from nysa.api.kpi.snapshots.count.key." + stats[i][j]['key'] + ".interval.hourly limit 1";
+            var currentData         = getInfluxDbData(currentQuery, gameDatasource, Settings);
+
+            weeklyData.unshift(currentData[0]);
+            monthlyData.unshift(currentData[0]);
+
+            var weeklyPerformances  = [];
+            for (var k = weeklyData.length - 2; k >= 0; k--) {
+                var growth  = performance((weeklyData[k].value - weeklyData[k + 1].value), weeklyData[k + 1].value);
+                weeklyPerformances.push(growth);
+            };
+
+            var monthlyPerformances  = [];
+            for (var k = monthlyData.length - 2; k >= 0; k--) {
+                var growth  = performance((monthlyData[k].value - monthlyData[k + 1].value), monthlyData[k + 1].value);
+                monthlyPerformances.push(growth);
+            };
+
+            var weekIndex   = 0;
+            var monthIndex  = 0;
+
+            var row         = table.insertRow(rowIndex++);
+            row.innerHTML   =
+            '<tr>' +
+                '<td>' + stats[i][j]['name'] + '</td>' +
+                '<td>' + monthlyData[1].value + '</td>' +
+                '<td>' + monthlyData[0].value + '</td>' +
+                '<td>' + weeklyPerformances[weekIndex++] + ' %</td>' +
+                '<td>' + weeklyPerformances[weekIndex++] + ' %</td>' +
+                '<td>' + weeklyPerformances[weekIndex++] + ' %</td>' +
+                '<td>' + '--' + '</td>' + // TODO remove this on next month
+                '<td>' + monthlyPerformances[monthIndex++] + ' %</td>' +
+                '<td>' + monthlyPerformances[monthIndex++] + ' %</td>';
+
+            if (stats[i][j]['performance']) {
+
+                var progressBarId       = '$panel.id$.progress-bar-' + rowIndex;
+
+                var goal                = goals[stats[i][j]['key']][formatDate(currentMonth)];
+
+                var monthlyGoal         = goal - monthlyData[1].value;
+                var weeklyGoal          = goal - weeklyData[1].value;
+                weeklyGoal              = (weeklyGoal * (weekDays / monthDays)).toFixed(0);
+
+                var weeklyValue         = weeklyData[0].value - weeklyData[1].value;
+                var monthlyValue        = monthlyData[0].value - monthlyData[1].value;
+
+                if (monthlyGoal <= 0) {
+                    // goal is already accomplished, metrics are different
+                    var monthlyProgress = performance(monthlyData[0].value, goal);
+                } else {
+                    var monthlyProgress = performance(monthlyValue, monthlyGoal);
+                }
+
+                if (weeklyGoal <= 0) {
+                    // goal is already accomplished, metrics are different
+                    var weeklyProgress  = performance(weeklyData[0].value, goal);
+                } else {
+                    var weeklyProgress  = performance(weeklyValue, weeklyGoal);
+                }
+
+                monthlyProgresses.push(monthlyProgress > 100 ? 100 : monthlyProgress);
+                weeklyProgresses.push(weeklyProgress > 100 ? 100 : weeklyProgress);
+
+                row.innerHTML      +=
+                '<td>' + goal + '</td>' +
+                '<td>' +
+                    '<div class="span4">' +
+                        '<div class="span2">' +
+                            '<div id="' + progressBarId + '" class="progress progress-striped progress-table">' +
+                                '<div class="bar" style="width: ' + monthlyProgress + '%;"></div>' +
+                            '</div>' +
+                        '</div>' +
+                        '<div class="span1">' + monthlyProgress + ' %' + '</div>' +
+                    '</div>' +
+                '</td>';
+            }
+
+            row.innerHTML  +='</tr>';
+            setProgressBarColour(progressBarId, monthlyProgress);
+        }
+
+        var blankRow        = table.insertRow(rowIndex++);
+        blankRow.innerHTML  = '<tr><th/></tr>';
+    }
+
+    monthlyProgressValue            = average(monthlyProgresses).toFixed(1);
+    weeklyProgressValue             = average(weeklyProgresses).toFixed(1);
+    setProgressBarColour("$panel.id$.monthly_progress_bar", monthlyProgressValue);
+    setProgressBarColour("$panel.id$.weekly_progress_bar", weeklyProgressValue);
+
+    var monthlyProgressDiv          = document.getElementById("$panel.id$.monthly_progress_value");
+    var weeklyProgressDiv           = document.getElementById("$panel.id$.weekly_progress_value");
+    monthlyProgressDiv.innerHTML    = monthlyProgressValue + " %";
+    weeklyProgressDiv.innerHTML     = weeklyProgressValue + " %";
+
+});
+
+</script>
+
+</body>
+</html>

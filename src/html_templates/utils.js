@@ -242,7 +242,7 @@ function dateDiffInDays(a, b) {
   return Math.floor((utc2 - utc1) / _MS_PER_DAY);
 }
 
-function getMonthNames(){
+function getMonthNames() {
   var monthNames = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"];
 
@@ -252,7 +252,7 @@ function getMonthNames(){
 function daysInMonth(date) {
     var date = new Date(date);
 
-    return new Date(date.getFullYear(), date.getMonth(), 0).getDate();
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
 }
 
 //Style functions
@@ -303,8 +303,41 @@ function fillPerformanceCell(cell, performance) {
   }
 }
 
+function setProgressBarColour(id, value) {
+
+  var bar   = document.getElementById(id);
+
+  if (bar === null) {
+    return false;
+  }
+
+  if (isNaN(value) || value < 0) {
+    return false;
+  }
+
+  if (value < 40) {
+    bar.className += ' progress-danger';
+  } else if (value < 70) {
+    bar.className += ' progress-warning';
+  } else {
+    bar.className += ' progress-success';
+  }
+
+  for(var i = 0; i < bar.childNodes.length; i++) {
+    child   = bar.childNodes[i];
+    if (child.className !== 'bar') {
+      continue;
+    }
+
+    child.style.width   = value + "%";
+    break;
+  }
+
+  return true;
+}
+
 //Simple funtion utils
-function performance(a, b){
+function performance(a, b) {
 
   return (a/b * 100).toFixed(1);
 }
@@ -318,7 +351,7 @@ function average(array){
   var total = 0;
 
   for(var i = 0; i < array.length; i++) {
-      total += array[i];
+      total += Number(array[i]);
   }
 
   return (total/array.length);
