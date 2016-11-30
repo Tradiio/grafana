@@ -87,7 +87,8 @@ function (angular, app, _, require, PanelMeta) {
                      'scorecard_previous',
                      'scorecard_profit',
                      'scorecard_referrals',
-                     'scorecard_vertical'
+                     'scorecard_vertical',
+                     'pledges_cohort'
                      ];
 
         return templates;
