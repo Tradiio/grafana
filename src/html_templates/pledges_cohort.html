@@ -100,7 +100,7 @@ require(['../config.js'], function(Settings){
 
   var startDate            = $var-startDate$;
   var timespan             = $var-timespan$;
-  var initialBehaviour     = 'registered_artists';
+  var initialBehaviour     = $var-behaviour$;
   var nextBehaviour        = 'artist_pledges';
   var isTotalPledges       = $var-valueType$ == '# Pledges';
 
@@ -207,7 +207,6 @@ require(['../config.js'], function(Settings){
 
     var span = $(this)[0];
     var perf = Number(span.innerHTML.split("%")[0]);
-    console.log(perf);
     if (!isNaN(perf)){
       span.parentNode.style.backgroundColor = getColorPerformance(performance(perf, maxPerformance));
     }
